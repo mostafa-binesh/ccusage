@@ -12,7 +12,7 @@ use crate::{
     SessionAccumulator, UsageSummary,
     adapter::{
         amp, antigravity, claude, codebuff, codex, copilot, droid, gemini, goose, grok, hermes,
-        kilo, kimi, openclaw, opencode, pi, qwen, zcode,
+        kilo, kimi, openclaw, opencode, pi, qoder, qwen, zcode,
     },
     cli::{AgentReportKind, CodexSpeed, CostMode, NamedPiStore, SharedArgs, SourceArgs, WeekDay},
     filter_loaded_entries_by_date, json_float,
@@ -476,12 +476,20 @@ fn load_base_rows(
         AgentLoadSpec {
             index: 15,
             agent: BUILT_IN_AGENT_NAMES[15],
-            progress_agent: crate::progress::UsageLoadAgent("Qwen"),
-            load: Box::new(|| load_qwen_rows(load_kind, &source_shared["qwen"])),
+            progress_agent: crate::progress::UsageLoadAgent("Qoder"),
+            load: Box::new(|| {
+                load_qoder_rows(load_kind, &source_shared["qoder"], &pricing["qoder"])
+            }),
         },
         AgentLoadSpec {
             index: 16,
             agent: BUILT_IN_AGENT_NAMES[16],
+            progress_agent: crate::progress::UsageLoadAgent("Qwen"),
+            load: Box::new(|| load_qwen_rows(load_kind, &source_shared["qwen"])),
+        },
+        AgentLoadSpec {
+            index: 17,
+            agent: BUILT_IN_AGENT_NAMES[17],
             progress_agent: crate::progress::UsageLoadAgent("Grok"),
             load: Box::new(|| {
                 let shared = &source_shared["grok"];
@@ -497,8 +505,8 @@ fn load_base_rows(
             }),
         },
         AgentLoadSpec {
-            index: 17,
-            agent: BUILT_IN_AGENT_NAMES[17],
+            index: 18,
+            agent: BUILT_IN_AGENT_NAMES[18],
             progress_agent: crate::progress::UsageLoadAgent("ZCode"),
             load: Box::new(|| {
                 load_priced_summary_agent_rows(
@@ -899,6 +907,23 @@ fn load_qwen_rows(kind: AgentReportKind, shared: &SharedArgs) -> Result<AgentRow
         rows: summary_rows("qwen", summaries, false),
         detected,
     })
+}
+
+fn load_qoder_rows(
+    kind: AgentReportKind,
+    shared: &SharedArgs,
+    pricing: &PricingMap,
+) -> Result<AgentRows> {
+    let mut rows = load_priced_summary_agent_rows(
+        "qoder",
+        kind,
+        shared,
+        pricing,
+        qoder::load_entries,
+        qoder::summarize_entries,
+    )?;
+    rows.detected = rows.detected || qoder::has_data();
+    Ok(rows)
 }
 
 fn summarize_entry_sessions(entries: &[LoadedEntry]) -> Result<Vec<UsageSummary>> {

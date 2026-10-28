@@ -50,6 +50,8 @@ pub struct CcusageConfig {
     pub antigravity: Option<AntigravityConfig>,
     /// Kimi configuration.
     pub kimi: Option<KimiConfig>,
+    /// Qoder configuration.
+    pub qoder: Option<QoderConfig>,
     /// Qwen configuration.
     pub qwen: Option<QwenConfig>,
     /// Grok Build CLI configuration.
@@ -315,6 +317,21 @@ pub struct KimiCommandsConfig {
 pub struct QwenConfig {
     pub defaults: Option<SharedOptions>,
     pub commands: Option<QwenCommandsConfig>,
+}
+
+#[derive(Debug, Default, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct QoderConfig {
+    pub defaults: Option<SharedOptions>,
+    pub commands: Option<QoderCommandsConfig>,
+}
+
+#[derive(Debug, Default, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct QoderCommandsConfig {
+    pub daily: Option<SharedOptions>,
+    pub monthly: Option<SharedOptions>,
+    pub session: Option<SharedOptions>,
 }
 
 #[derive(Debug, Default, Deserialize, JsonSchema)]
@@ -1208,6 +1225,7 @@ mod tests {
                 "opencode",
                 "openclaw",
                 "pi",
+                "qoder",
                 "qwen",
                 "zcode",
             ],
@@ -1352,6 +1370,13 @@ mod tests {
                 }
             },
             "qwen": {
+                "commands": {
+                    "session": {
+                        "json": true
+                    }
+                }
+            },
+            "qoder": {
                 "commands": {
                     "session": {
                         "json": true

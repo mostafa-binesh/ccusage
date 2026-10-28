@@ -1000,6 +1000,35 @@ fn unified_report_omits_zcode_without_usage_database() {
 }
 
 #[test]
+fn unified_report_counts_qoder_completed_model_responses() {
+    let fixture = fs_fixture!({
+        "qoder/logs/sessions/project-a/session-a/segments/segment.jsonl": r#"{"type":"model.response.completed","ts":"2099-01-02T00:00:00.000Z","seq":1,"data":{"model":"qoder-model","input_tokens":100,"output_tokens":50,"cache_read_input_tokens":5,"cache_creation_input_tokens":10}}"#,
+    });
+    let _env = isolated_agent_env(
+        &fixture,
+        "QODER_DATA_DIR",
+        fixture.path("qoder").into_os_string(),
+    );
+    let shared = fixture_shared("20990102", "20990102");
+
+    let result = load_rows(
+        AgentReportKind::Daily,
+        &shared,
+        &NO_SOURCES,
+        WeekDay::Monday,
+    )
+    .unwrap();
+
+    assert_eq!(result.detected_agents, vec!["qoder"]);
+    assert_eq!(result.rows.len(), 1);
+    assert_eq!(result.rows[0].input_tokens, 100);
+    assert_eq!(result.rows[0].output_tokens, 50);
+    assert_eq!(result.rows[0].cache_read_tokens, 5);
+    assert_eq!(result.rows[0].cache_creation_tokens, 10);
+    assert_eq!(result.rows[0].total_tokens, 165);
+}
+
+#[test]
 fn unified_report_filters_codex_paths_before_loading_historical_rows() {
     let resumed_usage = codex_usage_line("2026-03-15T08:01:00.000Z", "gpt-5", 1_000);
     let historical_usage = codex_usage_line("2026-03-15T08:02:00.000Z", "gpt-5", 9_999);
@@ -1134,6 +1163,7 @@ fn isolated_agent_env(
         "COPILOT_OTEL_FILE_EXPORTER_PATH",
         "GEMINI_DATA_DIR",
         "KIMI_DATA_DIR",
+        "QODER_DATA_DIR",
         "QWEN_DATA_DIR",
         "GROK_HOME",
         "ZCODE_HOME",

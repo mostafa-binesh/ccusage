@@ -24,6 +24,7 @@ pub enum Command {
     Gemini(AgentCommandArgs),
     Antigravity(AgentCommandArgs),
     Kimi(AgentCommandArgs),
+    Qoder(AgentCommandArgs),
     Qwen(AgentCommandArgs),
     OpenClaw(AgentCommandArgs),
     Grok(AgentCommandArgs),

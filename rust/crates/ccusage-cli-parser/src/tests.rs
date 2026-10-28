@@ -204,6 +204,7 @@ fn command_snapshot(command: Option<Command>) -> Value {
         Some(Command::Gemini(args)) => agent_command_snapshot("gemini", args),
         Some(Command::Antigravity(args)) => agent_command_snapshot("antigravity", args),
         Some(Command::Kimi(args)) => agent_command_snapshot("kimi", args),
+        Some(Command::Qoder(args)) => agent_command_snapshot("qoder", args),
         Some(Command::Qwen(args)) => agent_command_snapshot("qwen", args),
         Some(Command::OpenClaw(args)) => agent_command_snapshot("openclaw", args),
         Some(Command::Grok(args)) => agent_command_snapshot("grok", args),
@@ -807,7 +808,7 @@ fn root_help_lists_agent_namespaces_without_nested_commands() {
     let help = help_text();
     let agents = [
         "claude", "codex", "opencode", "amp", "droid", "codebuff", "hermes", "pi", "goose", "kilo",
-        "copilot", "gemini", "kimi", "qwen", "openclaw", "grok", "zcode",
+        "copilot", "gemini", "kimi", "qoder", "qwen", "openclaw", "grok", "zcode",
     ];
 
     for agent in agents {
@@ -1455,6 +1456,16 @@ fn parses_qwen_session_options() {
     let cli = parse(&["ccusage", "qwen", "session", "--json"]);
     let Some(Command::Qwen(args)) = cli.command else {
         panic!("expected qwen command");
+    };
+    assert_eq!(args.kind, AgentReportKind::Session);
+    assert!(args.shared.json);
+}
+
+#[test]
+fn parses_qoder_session_options() {
+    let cli = parse(&["ccusage", "qoder", "session", "--json"]);
+    let Some(Command::Qoder(args)) = cli.command else {
+        panic!("expected qoder command");
     };
     assert_eq!(args.kind, AgentReportKind::Session);
     assert!(args.shared.json);

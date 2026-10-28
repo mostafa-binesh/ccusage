@@ -612,6 +612,7 @@ fn agent_label(agent: &str) -> &str {
         "gemini" => "Gemini CLI",
         "antigravity" => "Antigravity",
         "kimi" => "Kimi",
+        "qoder" => "Qoder",
         "qwen" => "Qwen",
         "grok" => "Grok",
         "zcode" => "ZCode",

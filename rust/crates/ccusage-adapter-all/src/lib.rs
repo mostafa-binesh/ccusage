@@ -25,6 +25,7 @@ mod adapter {
     pub use ccusage_adapter_openclaw as openclaw;
     pub use ccusage_adapter_opencode as opencode;
     pub use ccusage_adapter_pi as pi;
+    pub use ccusage_adapter_qoder as qoder;
     pub use ccusage_adapter_qwen as qwen;
     pub use ccusage_adapter_zcode as zcode;
 }

@@ -100,6 +100,10 @@
 				"description": "Show Kimi usage commands"
 			},
 			{
+				"name": "qoder",
+				"description": "Show Qoder usage commands"
+			},
+			{
 				"name": "qwen",
 				"description": "Show Qwen usage commands"
 			},
@@ -710,6 +714,43 @@
 			"path": ["kimi", "session"],
 			"description": "Show Kimi usage grouped by session",
 			"usage": "ccusage kimi session <OPTIONS>",
+			"options": "agent_options"
+		},
+		{
+			"path": ["qoder"],
+			"description": "Usage reports for qoder.",
+			"usage": "ccusage qoder <COMMANDS>",
+			"commands": [
+				{
+					"name": "daily",
+					"description": "Show Qoder usage grouped by date"
+				},
+				{
+					"name": "monthly",
+					"description": "Show Qoder usage grouped by month"
+				},
+				{
+					"name": "session",
+					"description": "Show Qoder usage grouped by session"
+				}
+			]
+		},
+		{
+			"path": ["qoder", "daily"],
+			"description": "Show Qoder usage grouped by date",
+			"usage": "ccusage qoder daily <OPTIONS>",
+			"options": "agent_period_options"
+		},
+		{
+			"path": ["qoder", "monthly"],
+			"description": "Show Qoder usage grouped by month",
+			"usage": "ccusage qoder monthly <OPTIONS>",
+			"options": "agent_period_options"
+		},
+		{
+			"path": ["qoder", "session"],
+			"description": "Show Qoder usage grouped by session",
+			"usage": "ccusage qoder session <OPTIONS>",
 			"options": "agent_options"
 		},
 		{
