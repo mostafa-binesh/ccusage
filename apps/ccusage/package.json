@@ -14,7 +14,7 @@
 		"directory": "apps/ccusage"
 	},
 	"bin": {
-		"ccusage-mostafa": "./src/cli.js"
+		"ccusage-mostafa": "src/cli.js"
 	},
 	"files": [
 		"config-schema.json",
