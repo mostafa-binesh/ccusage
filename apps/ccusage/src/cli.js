@@ -28,36 +28,9 @@ const wrapperVersion = packageJson.version;
  * @returns {string | undefined}
  */
 function getNativePackageName(platform = process.platform, arch = process.arch) {
-	if (platform === 'darwin') {
-		if (arch === 'arm64') {
-			return '@ccusage/ccusage-darwin-arm64';
-		}
-		if (arch === 'x64') {
-			return '@ccusage/ccusage-darwin-x64';
-		}
-		return undefined;
-	}
-
-	if (platform === 'linux') {
-		if (arch === 'arm64') {
-			return '@ccusage/ccusage-linux-arm64';
-		}
-		if (arch === 'x64') {
-			return '@ccusage/ccusage-linux-x64';
-		}
-		return undefined;
-	}
-
-	if (platform === 'win32') {
-		if (arch === 'arm64') {
-			return '@ccusage/ccusage-win32-arm64';
-		}
-		if (arch === 'x64') {
-			return '@ccusage/ccusage-win32-x64';
-		}
-	}
-
-	return undefined;
+	return platform === 'win32' && arch === 'x64'
+		? 'ccusage-mostafa-win32-x64'
+		: undefined;
 }
 
 /**
@@ -110,12 +83,12 @@ function resolveCliRuntime({
 	const packageName = getNativePackageName(platform, arch);
 	if (packageName == null) {
 		return {
-			errorMessage: `ccusage does not provide a native binary for ${target}.\n`,
+			errorMessage: `ccusage-mostafa does not provide a native binary for ${target}.\n`,
 		};
 	}
 
 	return {
-		errorMessage: `Missing optional native package "${packageName}@${wrapperVersion}" for ${target}. It may be absent because of npm --before/--min-release-age, mise minimum_release_age, or --omit=optional. Reinstall ccusage with optional dependencies enabled and no release-age cutoff.\n`,
+		errorMessage: `Missing optional native package "${packageName}@${wrapperVersion}" for ${target}. It may be absent because of npm --before/--min-release-age, mise minimum_release_age, or --omit=optional. Reinstall ccusage-mostafa with optional dependencies enabled and no release-age cutoff.\n`,
 	};
 }
 

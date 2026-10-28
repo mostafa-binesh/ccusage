@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
 import { describe, it, mock } from 'node:test';
+import { pathToFileURL } from 'node:url';
 import {
 	createNativeSpawner,
 	ensureNativeBinaryExecutable,
@@ -15,25 +16,12 @@ const require = createRequire(import.meta.url);
 const packageJson = require('../package.json');
 
 void describe(resolveCliRuntime.name, () => {
-	void it('resolves the native package binary for the current supported platform', () => {
+	void it('resolves the published Windows x64 native package binary', () => {
 		const actual = resolveNativeBinary({
-			arch: 'arm64',
-			platform: 'darwin',
-			resolvePath: (id) => {
-				assert.equal(id, '@ccusage/ccusage-darwin-arm64/bin/ccusage');
-				return '/native/bin/ccusage';
-			},
-		});
-
-		assert.equal(actual, '/native/bin/ccusage');
-	});
-
-	void it('resolves the Windows native package binary with the exe suffix', () => {
-		const actual = resolveNativeBinary({
-			arch: 'arm64',
+			arch: 'x64',
 			platform: 'win32',
 			resolvePath: (id) => {
-				assert.equal(id, '@ccusage/ccusage-win32-arm64/bin/ccusage.exe');
+				assert.equal(id, 'ccusage-mostafa-win32-x64/bin/ccusage.exe');
 				return 'C:\\native\\bin\\ccusage.exe';
 			},
 		});
@@ -45,11 +33,11 @@ void describe(resolveCliRuntime.name, () => {
 		assert.deepEqual(
 			resolveCliRuntime({
 				argv: ['daily'],
-				nativeBinaryPath: '/app/node_modules/@ccusage/ccusage-darwin-arm64/bin/ccusage',
+				nativeBinaryPath: '/app/node_modules/ccusage-mostafa-win32-x64/bin/ccusage.exe',
 			}),
 			{
 				args: ['daily'],
-				command: '/app/node_modules/@ccusage/ccusage-darwin-arm64/bin/ccusage',
+				command: '/app/node_modules/ccusage-mostafa-win32-x64/bin/ccusage.exe',
 			},
 		);
 	});
@@ -57,13 +45,13 @@ void describe(resolveCliRuntime.name, () => {
 	void it('fails when the native package binary is unavailable', () => {
 		assert.deepEqual(
 			resolveCliRuntime({
-				arch: 'arm64',
+				arch: 'x64',
 				argv: ['daily'],
 				nativeBinaryPath: null,
-				platform: 'darwin',
+				platform: 'win32',
 			}),
 			{
-				errorMessage: `Missing optional native package "@ccusage/ccusage-darwin-arm64@${packageJson.version}" for darwin-arm64. It may be absent because of npm --before/--min-release-age, mise minimum_release_age, or --omit=optional. Reinstall ccusage with optional dependencies enabled and no release-age cutoff.\n`,
+				errorMessage: `Missing optional native package "ccusage-mostafa-win32-x64@${packageJson.version}" for win32-x64. It may be absent because of npm --before/--min-release-age, mise minimum_release_age, or --omit=optional. Reinstall ccusage-mostafa with optional dependencies enabled and no release-age cutoff.\n`,
 			},
 		);
 	});
@@ -77,7 +65,7 @@ void describe(resolveCliRuntime.name, () => {
 				platform: 'freebsd',
 			}),
 			{
-				errorMessage: 'ccusage does not provide a native binary for freebsd-riscv64.\n',
+				errorMessage: 'ccusage-mostafa does not provide a native binary for freebsd-riscv64.\n',
 			},
 		);
 	});
@@ -131,12 +119,18 @@ void describe(resolveCliRuntime.name, () => {
 	});
 
 	void it('treats package bin symlinks as the main module entry point', () => {
+		const modulePath = process.platform === 'win32'
+			? 'C:\\project\\node_modules\\ccusage-mostafa\\src\\cli.js'
+			: '/project/node_modules/ccusage-mostafa/src/cli.js';
+		const binPath = process.platform === 'win32'
+			? 'C:\\project\\node_modules\\.bin\\ccusage-mostafa'
+			: '/project/node_modules/.bin/ccusage-mostafa';
 		const actual = isMainModule({
-			argvEntry: '/project/node_modules/.bin/ccusage',
-			moduleUrl: 'file:///project/node_modules/ccusage/src/cli.js',
+			argvEntry: binPath,
+			moduleUrl: pathToFileURL(modulePath).href,
 			realpathPath: (path) =>
-				path === '/project/node_modules/.bin/ccusage'
-					? '/project/node_modules/ccusage/src/cli.js'
+				path === binPath
+					? modulePath
 					: path,
 		});
 

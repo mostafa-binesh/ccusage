@@ -1,11 +1,11 @@
 {
-	"name": "@ccusage/ccusage-win32-x64",
-	"version": "20.0.45",
-	"description": "Native ccusage binary for Windows x64",
+	"name": "ccusage-mostafa-win32-x64",
+	"version": "20.0.45-qoder.0",
+	"description": "Native binary for ccusage-mostafa on Windows x64",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/ccusage/ccusage.git",
+		"url": "git+https://github.com/mostafa-binesh/ccusage.git",
 		"directory": "packages/ccusage-win32-x64"
 	},
 	"files": [

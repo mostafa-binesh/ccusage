@@ -1,7 +1,9 @@
 <div align="center">
     <img src="https://cdn.jsdelivr.net/gh/ccusage/ccusage@main/docs/public/logo.svg" alt="ccusage logo" width="256" height="256">
-    <h1>ccusage</h1>
+    <h1>ccusage-mostafa</h1>
 </div>
+
+> **ccusage-mostafa** is an independent Windows x64 fork with experimental Qoder support. It is not an official `ccusage` release.
 
 <p align="center">
     <a href="https://socket.dev/npm/package/ccusage"><img src="https://socket.dev/api/badge/npm/package/ccusage" alt="Socket Badge" /></a>
@@ -41,8 +43,10 @@
 ## Quick Start
 
 ```bash
-npx ccusage@latest
+npx ccusage-mostafa qoder daily
 ```
+
+This fork supports Windows x64 only. Where the upstream documentation below uses `ccusage`, use `ccusage-mostafa` instead.
 
 ## Supported Sources
 
