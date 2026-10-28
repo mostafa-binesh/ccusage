@@ -137,6 +137,7 @@ dependencies = [
  "ccusage-adapter-openclaw",
  "ccusage-adapter-opencode",
  "ccusage-adapter-pi",
+ "ccusage-adapter-qoder",
  "ccusage-adapter-qwen",
  "ccusage-adapter-zcode",
  "ccusage-cli",
@@ -179,6 +180,7 @@ dependencies = [
  "ccusage-adapter-openclaw",
  "ccusage-adapter-opencode",
  "ccusage-adapter-pi",
+ "ccusage-adapter-qoder",
  "ccusage-adapter-qwen",
  "ccusage-adapter-zcode",
  "ccusage-cli",
@@ -396,6 +398,18 @@ dependencies = [
 
 [[package]]
 name = "ccusage-adapter-pi"
+version = "0.0.0"
+dependencies = [
+ "ccusage-adapter-common",
+ "ccusage-core",
+ "ccusage-test-support",
+ "jiff",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ccusage-adapter-qoder"
 version = "0.0.0"
 dependencies = [
  "ccusage-adapter-common",

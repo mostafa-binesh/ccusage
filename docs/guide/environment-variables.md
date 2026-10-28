@@ -20,6 +20,7 @@ ccusage detects supported data source files from conventional locations by defau
 | `OPENCLAW_DIR`                    | OpenClaw       | `~/.openclaw`                                        |
 | `KILO_DATA_DIR`                   | Kilo           | `~/.local/share/kilo`                                |
 | `KIMI_DATA_DIR`                   | Kimi           | `~/.kimi`, `~/.kimi-code`                            |
+| `QODER_DATA_DIR`                  | Qoder          | `~/.qoder`                                           |
 | `QWEN_DATA_DIR`                   | Qwen           | `~/.qwen`                                            |
 | `COPILOT_HOME`                    | Copilot CLI    | `~/.copilot`                                         |
 | `COPILOT_OTEL_FILE_EXPORTER_PATH` | Copilot CLI    | Explicit `.jsonl` file                               |
@@ -42,6 +43,7 @@ export GOOSE_PATH_ROOT="/path/to/goose,/archive/goose"
 export OPENCLAW_DIR="/path/to/openclaw,/archive/openclaw"
 export KILO_DATA_DIR="/path/to/kilo,/archive/kilo"
 export KIMI_DATA_DIR="/path/to/kimi,/archive/kimi"
+export QODER_DATA_DIR="/path/to/qoder,/archive/qoder"
 export QWEN_DATA_DIR="/path/to/qwen,/archive/qwen"
 export COPILOT_HOME="/path/to/copilot"
 export COPILOT_OTEL_FILE_EXPORTER_PATH="/path/to/copilot-otel.jsonl"
@@ -218,7 +220,7 @@ To see which environment variables are being used:
 
 ```bash
 # Show all environment variables
-env | grep -E "CLAUDE|CODEX|OPENCODE|AMP|DROID|CODEBUFF|HERMES|PI_AGENT|GOOSE|OPENCLAW|KILO|KIMI|QWEN|COPILOT|GEMINI|GROK|ZCODE|CCUSAGE|LOG_LEVEL"
+env | grep -E "CLAUDE|CODEX|OPENCODE|AMP|DROID|CODEBUFF|HERMES|PI_AGENT|GOOSE|OPENCLAW|KILO|KIMI|QODER|QWEN|COPILOT|GEMINI|GROK|ZCODE|CCUSAGE|LOG_LEVEL"
 
 # Debug mode shows environment variable usage
 LOG_LEVEL=4 ccusage daily --debug

@@ -51,6 +51,7 @@ ccusage amp session
 ccusage pi monthly
 ccusage kilo daily
 ccusage kimi daily
+ccusage qoder daily
 ccusage qwen daily
 ```
 
@@ -175,6 +176,7 @@ If ccusage shows no data, check:
    - Kilo: `${KILO_DATA_DIR:-~/.local/share/kilo}`
    - Kimi: `${KIMI_DATA_DIR:-~/.kimi}` (also scans `~/.kimi-code`)
    - OpenClaw: `${OPENCLAW_DIR:-~/.openclaw}` (also scans `~/.clawdbot`, `~/.moltbot`, `~/.moldbot`)
+   - Qoder: `${QODER_DATA_DIR:-~/.qoder}`
    - Qwen: `${QWEN_DATA_DIR:-~/.qwen}`
    - GitHub Copilot CLI: `${COPILOT_HOME:-~/.copilot}/session-state/*/events.jsonl`, `${COPILOT_HOME:-~/.copilot}/otel/**/*.jsonl`, or the single file specified by `COPILOT_OTEL_FILE_EXPORTER_PATH`
    - Antigravity: `${ANTIGRAVITY_DATA_DIR:-~/.gemini/antigravity*}` or `~/.config/antigravity`
@@ -198,6 +200,7 @@ export GOOSE_PATH_ROOT="/path/to/goose"
 export OPENCLAW_DIR="/path/to/openclaw"
 export KILO_DATA_DIR="/path/to/kilo"
 export KIMI_DATA_DIR="/path/to/kimi"
+export QODER_DATA_DIR="/path/to/qoder"
 export QWEN_DATA_DIR="/path/to/qwen"
 export COPILOT_HOME="/path/to/copilot"
 export ANTIGRAVITY_DATA_DIR="/path/to/antigravity"
@@ -220,6 +223,7 @@ export GOOSE_PATH_ROOT="/path/to/goose,/archive/goose"
 export OPENCLAW_DIR="/path/to/openclaw,/archive/openclaw"
 export KILO_DATA_DIR="/path/to/kilo,/archive/kilo"
 export KIMI_DATA_DIR="/path/to/kimi,/archive/kimi"
+export QODER_DATA_DIR="/path/to/qoder,/archive/qoder"
 export QWEN_DATA_DIR="/path/to/qwen,/archive/qwen"
 export ANTIGRAVITY_DATA_DIR="/path/to/antigravity,/archive/antigravity"
 export ZCODE_HOME="/path/to/zcode,/archive/zcode"

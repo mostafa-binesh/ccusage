@@ -34,6 +34,7 @@ ccusage-adapter-kimi = { path = "adapters/kimi" }
 ccusage-adapter-openclaw = { path = "adapters/openclaw" }
 ccusage-adapter-opencode = { path = "adapters/opencode" }
 ccusage-adapter-pi = { path = "adapters/pi" }
+ccusage-adapter-qoder = { path = "adapters/qoder" }
 ccusage-adapter-qwen = { path = "adapters/qwen" }
 ccusage-adapter-zcode = { path = "adapters/zcode" }
 ccusage-cli = { path = "crates/ccusage-cli" }
