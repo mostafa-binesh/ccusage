@@ -1,6 +1,6 @@
 {
 	"name": "ccusage-mostafa",
-	"version": "20.0.45-qoder.0",
+	"version": "20.0.45-qoder.1",
 	"description": "Windows x64 ccusage fork with experimental Qoder usage reporting",
 	"homepage": "https://github.com/mostafa-binesh/ccusage/tree/feat/qoder-token-usage#readme",
 	"bugs": {
@@ -29,6 +29,6 @@
 		"@types/node": "catalog:types"
 	},
 	"optionalDependencies": {
-		"ccusage-mostafa-win32-x64": "20.0.45-qoder.0"
+		"ccusage-mostafa-win32-x64": "20.0.45-qoder.1"
 	}
 }

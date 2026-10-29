@@ -73,6 +73,7 @@ fn filter_session_summaries(rows: &mut Vec<crate::UsageSummary>, shared: &Shared
 
 pub fn has_data() -> bool {
     paths::discover_session_files().is_ok_and(|files| !files.is_empty())
+        || paths::discover_project_files().is_ok_and(|files| !files.is_empty())
 }
 
 #[cfg(test)]
@@ -106,5 +107,44 @@ mod tests {
             entries[0].data.message.usage.cache_creation_input_tokens,
             10
         );
+    }
+
+    #[test]
+    fn loads_project_credits_when_session_tokens_are_placeholders() {
+        let fixture = fs_fixture!({
+            "logs/sessions/project-a/session-a/segments/segment.jsonl": r#"{"type":"model.response.completed","ts":"2026-02-23T14:24:56.857Z","seq":1,"data":{"model":"qoder-model","input_tokens":0,"output_tokens":0,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}"#,
+            "projects/project-a/session-a.jsonl": r#"{"type":"assistant","timestamp":"2026-02-23T14:24:56.857Z","sessionId":"session-a","cwd":"/workspace/project-a","requestTokenAnchor":{"requestId":"request-a"},"message":{"id":"message-a","model":"qoder-model","usage":{"credits":1.25}}}"#,
+        });
+        let shared = SharedArgs {
+            mode: CostMode::Display,
+            timezone: Some("UTC".to_string()),
+            ..SharedArgs::default()
+        };
+        let _guard = EnvVarGuard::set("QODER_DATA_DIR", fixture.root());
+        let entries = load_entries(&shared, &PricingMap::default()).unwrap();
+
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].date, "2026-02-23");
+        assert_eq!(entries[0].session_id.as_ref(), "session-a");
+        assert_eq!(entries[0].project_path.as_ref(), "/workspace/project-a");
+        assert_eq!(entries[0].data.message.usage.input_tokens, 0);
+        assert_eq!(entries[0].data.message.usage.output_tokens, 0);
+        assert_eq!(entries[0].data.message.usage.cache_read_input_tokens, 0);
+        assert_eq!(entries[0].data.message.usage.cache_creation_input_tokens, 0);
+        assert_eq!(entries[0].credits, Some(1.25));
+    }
+
+    #[test]
+    fn prefers_exact_session_tokens_to_project_credits() {
+        let fixture = fs_fixture!({
+            "logs/sessions/project-a/session-a/segments/segment.jsonl": r#"{"type":"model.response.completed","ts":"2026-02-23T14:24:56.857Z","seq":1,"request_id":"request-a","data":{"model":"qoder-model","input_tokens":100}}"#,
+            "projects/project-a/session-a.jsonl": r#"{"type":"assistant","timestamp":"2026-02-23T14:24:56.857Z","sessionId":"session-a","requestTokenAnchor":{"requestId":"request-a"},"message":{"id":"message-a","model":"qoder-model","usage":{"credits":1.25}}}"#,
+        });
+        let _guard = EnvVarGuard::set("QODER_DATA_DIR", fixture.root());
+        let entries = load_entries(&SharedArgs::default(), &PricingMap::default()).unwrap();
+
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].data.message.usage.input_tokens, 100);
+        assert_eq!(entries[0].credits, None);
     }
 }

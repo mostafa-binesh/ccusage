@@ -8,7 +8,7 @@ use crate::{Result, collect_files_with_extension};
 
 const QODER_DATA_DIR_ENV: &str = "QODER_DATA_DIR";
 
-fn roots() -> Result<Vec<PathBuf>> {
+pub(super) fn roots() -> Result<Vec<PathBuf>> {
     let candidates = if let Ok(paths) = env::var(QODER_DATA_DIR_ENV) {
         paths
             .split(',')
@@ -42,6 +42,20 @@ pub(super) fn discover_session_files() -> Result<Vec<PathBuf>> {
         files.extend(root_files);
     }
     files.sort();
+    Ok(files)
+}
+
+pub(super) fn discover_project_files() -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+    for root in roots()? {
+        let projects = root.join("projects");
+        if !projects.is_dir() {
+            continue;
+        }
+        collect_files_with_extension(&projects, "jsonl", &mut files);
+    }
+    files.sort();
+    files.dedup();
     Ok(files)
 }
 

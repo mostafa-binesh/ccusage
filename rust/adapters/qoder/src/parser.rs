@@ -22,6 +22,7 @@ use crate::{
 
 const RESPONSE_COMPLETED: &str = "model.response.completed";
 const DEFAULT_QODER_MODEL: &str = "unknown";
+const ASSISTANT_MESSAGE: &str = "assistant";
 
 /// Qoder records token accounting in completed-model-response event payloads.
 #[derive(Debug, Deserialize)]
@@ -32,6 +33,8 @@ struct QoderLine {
     ts: Option<String>,
     #[serde(default, deserialize_with = "jsonl::lenient_u64")]
     seq: u64,
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    request_id: Option<String>,
     data: Option<QoderUsage>,
 }
 
@@ -47,6 +50,45 @@ struct QoderUsage {
     cache_read_input_tokens: u64,
     #[serde(default, deserialize_with = "jsonl::lenient_u64")]
     cache_creation_input_tokens: u64,
+}
+
+/// Qoder's project-history files preserve credits when session events contain
+/// placeholder token counts.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct QoderProjectLine {
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    r#type: Option<String>,
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    timestamp: Option<String>,
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    session_id: Option<String>,
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    cwd: Option<String>,
+    request_token_anchor: Option<QoderRequestTokenAnchor>,
+    message: Option<QoderProjectMessage>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct QoderRequestTokenAnchor {
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    request_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct QoderProjectMessage {
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    id: Option<String>,
+    #[serde(default, deserialize_with = "jsonl::non_empty_string")]
+    model: Option<String>,
+    usage: Option<QoderProjectUsage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct QoderProjectUsage {
+    #[serde(default)]
+    credits: f64,
 }
 
 pub(super) fn load_entries(shared: &SharedArgs, pricing: &PricingMap) -> Result<Vec<LoadedEntry>> {
@@ -69,6 +111,56 @@ pub(super) fn load_entries(shared: &SharedArgs, pricing: &PricingMap) -> Result<
     for file_entries in loaded {
         for entry in file_entries {
             if seen.insert(entry_id(&entry)) {
+                entries.push(entry);
+            }
+        }
+    }
+    entries.sort_by_key(|entry| entry.timestamp);
+    let exact_request_ids = entries
+        .iter()
+        .filter_map(|entry| entry.data.message.id.clone())
+        .collect::<HashSet<_>>();
+    let project_entries = load_project_credit_entries(shared, tz.as_ref())?;
+    for entry in project_entries {
+        if entry
+            .data
+            .message
+            .id
+            .as_ref()
+            .is_some_and(|id| exact_request_ids.contains(id))
+        {
+            continue;
+        }
+        if seen.insert(project_entry_id(&entry)) {
+            entries.push(entry);
+        }
+    }
+    entries.sort_by_key(|entry| entry.timestamp);
+    Ok(entries)
+}
+
+fn load_project_credit_entries(
+    shared: &SharedArgs,
+    tz: Option<&JiffTimeZone>,
+) -> Result<Vec<LoadedEntry>> {
+    let files = paths::discover_project_files()?;
+    let loaded = read_files_parallel(&files, shared.single_thread, |file| {
+        read_project_file(file, tz, shared).unwrap_or_else(|error| {
+            debug_log(
+                shared,
+                format!(
+                    "Failed to read Qoder project history file {}: {error}",
+                    file.display()
+                ),
+            );
+            Vec::new()
+        })
+    });
+    let mut entries = Vec::new();
+    let mut seen = HashSet::new();
+    for file_entries in loaded {
+        for entry in file_entries {
+            if seen.insert(project_entry_id(&entry)) {
                 entries.push(entry);
             }
         }
@@ -155,7 +247,10 @@ fn parse_line(
         message: UsageMessage {
             usage,
             model: Some(model.clone()),
-            id: (record.seq != 0).then(|| record.seq.to_string()),
+            id: record
+                .request_id
+                .clone()
+                .or_else(|| (record.seq != 0).then(|| record.seq.to_string())),
         },
         cost_usd: None,
         request_id: None,
@@ -175,6 +270,94 @@ fn parse_line(
         message_count: None,
         usage_limit_reset_time: None,
         missing_pricing_model,
+        extra_total_tokens: 0,
+        stored_cost: None,
+    })
+}
+
+fn read_project_file(
+    file: &Path,
+    tz: Option<&JiffTimeZone>,
+    shared: &SharedArgs,
+) -> Result<Vec<LoadedEntry>> {
+    let fallback = file_timestamp(file, shared);
+    let content = fs::read(file)?;
+    let mut entries = Vec::new();
+    for record in jsonl::records::<QoderProjectLine>(&content, None) {
+        if let Some(entry) = parse_project_line(file, fallback, &record, tz) {
+            entries.push(entry);
+        }
+    }
+    Ok(entries)
+}
+
+fn parse_project_line(
+    file: &Path,
+    fallback: TimestampMs,
+    record: &QoderProjectLine,
+    tz: Option<&JiffTimeZone>,
+) -> Option<LoadedEntry> {
+    if record.r#type.as_deref() != Some(ASSISTANT_MESSAGE) {
+        return None;
+    }
+    let message = record.message.as_ref()?;
+    let usage = message.usage.as_ref()?;
+    if !usage.credits.is_finite() || usage.credits == 0.0 {
+        return None;
+    }
+
+    let timestamp_text = record
+        .timestamp
+        .clone()
+        .and_then(|value| parse_ts_timestamp(&value).map(|_| value))
+        .unwrap_or_else(|| format_rfc3339_millis(fallback));
+    let timestamp = parse_ts_timestamp(&timestamp_text).unwrap_or(fallback);
+    let session_id = record.session_id.clone().unwrap_or_else(|| {
+        file.file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned()
+    });
+    let project_path = record
+        .cwd
+        .clone()
+        .unwrap_or_else(|| "qoder-project-history".to_string());
+    let model = message
+        .model
+        .clone()
+        .unwrap_or_else(|| DEFAULT_QODER_MODEL.to_string());
+    let request_id = record
+        .request_token_anchor
+        .as_ref()
+        .and_then(|anchor| anchor.request_id.clone())
+        .or_else(|| message.id.clone());
+    let data = UsageEntry {
+        session_id: Some(session_id.clone()),
+        timestamp: timestamp_text,
+        version: None,
+        message: UsageMessage {
+            usage: TokenUsageRaw::default(),
+            model: Some(model.clone()),
+            id: request_id,
+        },
+        cost_usd: None,
+        request_id: None,
+        is_api_error_message: None,
+        is_sidechain: None,
+    };
+    Some(LoadedEntry {
+        data,
+        timestamp,
+        date: format_date_tz(timestamp, tz),
+        project: Arc::from("qoder"),
+        session_id: Arc::from(session_id),
+        project_path: Arc::from(project_path),
+        cost: 0.0,
+        credits: Some(usage.credits),
+        model: Some(model),
+        message_count: None,
+        usage_limit_reset_time: None,
+        missing_pricing_model: None,
         extra_total_tokens: 0,
         stored_cost: None,
     })
@@ -215,6 +398,15 @@ fn entry_id(entry: &LoadedEntry) -> String {
         entry.data.message.id,
         entry.data.timestamp,
         entry.data.message.model,
+    ])
+    .to_string()
+}
+
+fn project_entry_id(entry: &LoadedEntry) -> String {
+    serde_json::json!([
+        entry.session_id.as_ref(),
+        entry.data.message.id,
+        entry.data.timestamp,
     ])
     .to_string()
 }

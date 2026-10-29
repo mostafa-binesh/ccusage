@@ -1,6 +1,6 @@
 {
 	"name": "ccusage-mostafa-win32-x64",
-	"version": "20.0.45-qoder.0",
+	"version": "20.0.45-qoder.1",
 	"description": "Native binary for ccusage-mostafa on Windows x64",
 	"license": "MIT",
 	"repository": {
